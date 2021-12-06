@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import requests as re
 import json
+import argparse
 
 # Create Database
 def setUpDatabase(db_name):
@@ -19,15 +20,33 @@ def create_country_table(cur, conn):
     r = re.get(base_url)
     data = r.text
     dict = json.loads(data)
+    #dict_sorted = sorted(dict.items(), key = lambda x: x[1])
     country_list = []
     for country in dict:
         country_list.append((country['name']['common'],country['cca3']))
-
+    sorted_list = sorted(country_list, key = lambda x: x[1])
     # create table with desirable names and params
-    cur.execute("DROP TABLE IF EXISTS Countries")
-    cur.execute("CREATE TABLE Countries (c_code TEXT PRIMARY KEY, c_name TEXT)")
+    #cur.execute("DROP TABLE IF EXISTS Countries")
+
+    cur.execute("CREATE TABLE IF NOT EXISTS Countries (c_code TEXT PRIMARY KEY, c_name TEXT)")
     conn.commit()
     
+    cur.execute("SELECT COUNT (*) FROM Countries")
+    conn.commit()
+
+    count_row = cur.fetchall()
+    count_row = count_row[0][0]
+
+    # if all rows stored
+    if (count_row >= 250):
+        return
+
+    for i in range(count_row, count_row+25):
+        # insert item
+        cur.execute("INSERT OR IGNORE INTO Countries (c_code, c_name) VALUES (?,?)", (sorted_list[i][1], sorted_list[i][0]))
+
+
+    """" Old code
     # write 25 items to db once
     counter = 0
     temp = []
@@ -45,18 +64,51 @@ def create_country_table(cur, conn):
     # if temp still has somthing left, but not yet commit
     if len(temp) != 0:
         write_countries(cur, conn, temp)
-
+    """
+    
+"""
 # write country data to db
 def write_countries(cur, conn, country_list):
     for country in country_list:
         cur.execute("INSERT INTO Countries (c_code, c_name) VALUES (?,?)", (country[1], country[0]))
     conn.commit()
+"""
+
+
+def drop_table(cur, conn, table_name):
+    cur.execute(f"DROP TABLE IF EXISTS {table_name}")
+    conn.commit()
+
+
+
+def create_GDP_table(cur, conn):
+    cur.execute("SELECT c_code FROM Countries")
+    conn.commit()
+    code = cur.fetchall()
+
+    code_list = []
+    for i in code:
+        code_list.append(i[0])
+
+    print(code_list)
+
+
 
 
 def main():
     cur, conn = setUpDatabase('countries.db') # do not modify
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--drop',  type=str)
+    args = parser.parse_args()
+    if  (args.drop):
+        drop_table(cur, conn, args.drop)
+
     create_country_table(cur, conn) 
     # TODO: make one function here to create each table
+    create_GDP_table(cur,conn)
+
+
 
 
 if __name__ == "__main__":
