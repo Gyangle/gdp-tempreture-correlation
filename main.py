@@ -5,6 +5,7 @@ import numpy as np
 import requests as re
 import json
 import argparse
+from bs4 import BeautifulSoup
 
 # Create Database
 def setUpDatabase(db_name):
@@ -93,6 +94,21 @@ def create_GDP_table(cur, conn):
     print(code_list)
 
 
+def create_temperature_table(cur, conn):
+    soup = BeautifulSoup(re.get('https://listfist.com/list-of-countries-by-average-temperature').text, 'html.parser')
+    body = soup.find('tbody')
+    all_rows = body.find_all('tr')
+
+    cur.execute("CREATE TABLE IF NOT EXISTS Temperature (country_name TEXT PRIMARY KEY, temp FLOAT)")
+    conn.commit()
+
+    for row in all_rows:
+        country_name = row.find('td', {'class':'col-3 odd'})
+        country_temp = row.find('td', {'class':'col-4 even'})
+        print(country_name.getText())
+        print(country_temp.getText())
+        cur.execute("INSERT INTO Temperature (country_name, temp) VALUES (?,?)", (country_name.getText(), country_temp.getText()))
+    conn.commit()
 
 
 def main():
@@ -107,6 +123,7 @@ def main():
     create_country_table(cur, conn) 
     # TODO: make one function here to create each table
     create_GDP_table(cur,conn)
+    create_temperature_table(cur,conn)
 
 
 
