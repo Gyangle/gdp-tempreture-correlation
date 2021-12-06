@@ -85,14 +85,13 @@ def create_temperature_table(cur, conn):
     body = soup.find('tbody')
     all_rows = body.find_all('tr')
 
+    cur.execute("DROP TABLE IF EXISTS Temperature")
     cur.execute("CREATE TABLE IF NOT EXISTS Temperature (country_name TEXT PRIMARY KEY, temp FLOAT)")
     conn.commit()
 
     for row in all_rows:
         country_name = row.find('td', {'class':'col-3 odd'})
         country_temp = row.find('td', {'class':'col-4 even'})
-        print(country_name.getText())
-        print(country_temp.getText())
         cur.execute("INSERT INTO Temperature (country_name, temp) VALUES (?,?)", (country_name.getText(), country_temp.getText()))
     conn.commit()
 
