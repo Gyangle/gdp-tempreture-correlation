@@ -111,6 +111,7 @@ def main():
     create_country_table(cur, conn) 
     create_GDP_table(cur,conn)
     create_temperature_table(cur,conn)
+    print("grant is great")
 
 
 
