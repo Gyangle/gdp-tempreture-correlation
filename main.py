@@ -6,13 +6,22 @@ import requests as re
 import json
 import argparse
 
+# command arg 1: 
+# python3 main.py --drop all
+# drop all the tables except the meta data table
+
+# command arg 2: 
+# python3 main.py --drop [table names]
+# drop a specific table
+
+
 # Create Database
 def setUpDatabase(db_name):
     path = os.path.dirname(os.path.abspath(__file__))
     conn = sqlite3.connect(path+'/'+db_name)
     cur = conn.cursor()
     return cur, conn
-
+    
 
 def create_country_table(cur, conn):
     # store all country names in data in an LIST**
@@ -25,64 +34,41 @@ def create_country_table(cur, conn):
     for country in dict:
         country_list.append((country['name']['common'],country['cca3']))
     sorted_list = sorted(country_list, key = lambda x: x[1])
-    # create table with desirable names and params
-    #cur.execute("DROP TABLE IF EXISTS Countries")
 
-    cur.execute("CREATE TABLE IF NOT EXISTS Countries (c_code TEXT PRIMARY KEY, c_name TEXT)")
+    # create tables
+    cur.execute("CREATE TABLE IF NOT EXISTS CountryCode (id INTEGER PRIMARY KEY AUTOINCREMENT, c_code TEXT)")
+    cur.execute("CREATE TABLE IF NOT EXISTS CountryName (id INTEGER PRIMARY KEY AUTOINCREMENT, c_name TEXT)")
     conn.commit()
     
-    cur.execute("SELECT COUNT (*) FROM Countries")
-    conn.commit()
-
+    # check if need to add 25
+    cur.execute("SELECT COUNT (*) FROM CountryCode")
     count_row = cur.fetchall()
     count_row = count_row[0][0]
-
     # if all rows stored
     if (count_row >= 250):
         return
 
     for i in range(count_row, count_row+25):
         # insert item
-        cur.execute("INSERT OR IGNORE INTO Countries (c_code, c_name) VALUES (?,?)", (sorted_list[i][1], sorted_list[i][0]))
-
-
-    """" Old code
-    # write 25 items to db once
-    counter = 0
-    temp = []
-    while(counter != len(country_list)):
-        # apppend items to temp
-        temp.append(country_list[counter])
-        
-        # when size of temp reach 25
-        if len(temp) == 25:
-            write_countries(cur, conn, temp) # 1. pass temp to the write_countries
-            temp = []                        # 2. clear temp
-        
-        counter = counter + 1
-
-    # if temp still has somthing left, but not yet commit
-    if len(temp) != 0:
-        write_countries(cur, conn, temp)
-    """
-    
-"""
-# write country data to db
-def write_countries(cur, conn, country_list):
-    for country in country_list:
-        cur.execute("INSERT INTO Countries (c_code, c_name) VALUES (?,?)", (country[1], country[0]))
+        cur.execute("INSERT OR IGNORE INTO CountryCode (c_code) VALUES (?)", (sorted_list[i][1],))
+        cur.execute("INSERT OR IGNORE INTO CountryName (c_name) VALUES (?)", (sorted_list[i][0],))
     conn.commit()
-"""
 
 
 def drop_table(cur, conn, table_name):
-    cur.execute(f"DROP TABLE IF EXISTS {table_name}")
+    if table_name == "all":
+        res = conn.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        for name in res.fetchall():
+            if name[0] != "sqlite_sequence": # avoid deleting meta data for auto increment
+                cur.execute(f"DROP TABLE IF EXISTS {name[0]}")
+        
+    else:
+        cur.execute(f"DROP TABLE IF EXISTS {table_name}")
     conn.commit()
 
 
-
 def create_GDP_table(cur, conn):
-    cur.execute("SELECT c_code FROM Countries")
+    cur.execute("SELECT c_code FROM CountryCode")
     conn.commit()
     code = cur.fetchall()
 
@@ -93,19 +79,18 @@ def create_GDP_table(cur, conn):
     print(code_list)
 
 
-
-
 def main():
     cur, conn = setUpDatabase('countries.db') # do not modify
 
+    # process the drop command
     parser = argparse.ArgumentParser()
     parser.add_argument('--drop',  type=str)
     args = parser.parse_args()
     if  (args.drop):
         drop_table(cur, conn, args.drop)
 
+    # initialize tables
     create_country_table(cur, conn) 
-    # TODO: make one function here to create each table
     create_GDP_table(cur,conn)
 
 
