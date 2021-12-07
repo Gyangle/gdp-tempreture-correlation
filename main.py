@@ -56,19 +56,11 @@ def create_country_table(cur, conn):
     conn.commit()
 
 
-def drop_table(cur, conn, table_name):
-    if table_name == "all":
-        res = conn.execute("SELECT name FROM sqlite_master WHERE type='table';")
-        for name in res.fetchall():
-            if name[0] != "sqlite_sequence": # avoid deleting meta data for auto increment
-                cur.execute(f"DROP TABLE IF EXISTS {name[0]}")
-        
-    else:
-        cur.execute(f"DROP TABLE IF EXISTS {table_name}")
-    conn.commit()
+
 
 
 def create_GDP_table(cur, conn):
+    # fetch all country code from the CountryCode table
     cur.execute("SELECT c_code FROM CountryCode")
     conn.commit()
     code = cur.fetchall()
@@ -77,7 +69,34 @@ def create_GDP_table(cur, conn):
     for i in code:
         code_list.append(i[0])
 
-    print(code_list)
+    # create CountryGDP table
+    cur.execute("CREATE TABLE IF NOT EXISTS CountryGDP (c_code TEXT UNIQUE, c_GDP NUMERIC)")
+    conn.commit()
+
+    # find how many items are currently in the CountryCode table
+    cur.execute("SELECT COUNT (*) FROM CountryCode")
+    count_row = cur.fetchall()
+    count_row = count_row[0][0]
+    # if all rows stored
+    if (count_row >= 250):
+        return
+
+    # fetch new added country codes' according GDP
+    for i in range(count_row - 25, count_row):
+
+        base_url = f"https://api.worldbank.org/v2/country/{code_list[i]}/indicator/NY.GDP.MKTP.CD?format=json&date=2020"
+        r = re.get(base_url)
+        data = r.text
+        dict = json.loads(data)
+        # some countries don't have value for GDP, ignore those
+        if len(dict) > 1 and dict[1] != None and dict[1][0]["value"] != None:
+            cur.execute("INSERT INTO CountryGDP (c_code, c_GDP) VALUES (?,?)", (code_list[i], dict[1][0]["value"]))
+    conn.commit()
+
+                #print(dict[1][0]["value"])
+
+
+
 
 
 def create_temperature_table(cur, conn):
@@ -96,22 +115,46 @@ def create_temperature_table(cur, conn):
     conn.commit()
 
 
+
+##############################################################################################
+
+
+def drop_table(cur, conn, table_name):
+    if table_name == "all":
+        res = conn.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        for name in res.fetchall():
+            if name[0] != "sqlite_sequence": # avoid deleting meta data for auto increment
+                cur.execute(f"DROP TABLE IF EXISTS {name[0]}")
+        
+    else:
+        cur.execute(f"DROP TABLE IF EXISTS {table_name}")
+    conn.commit()
+
+
+
+##############################################################################################
+
 def main():
     cur, conn = setUpDatabase('countries.db') # do not modify
-
-    # process the drop command
+     
+     # process the drop command
     parser = argparse.ArgumentParser()
     parser.add_argument('--drop',  type=str)
     args = parser.parse_args()
     if  (args.drop):
         drop_table(cur, conn, args.drop)
 
-    # initialize tables
+
+      # initialize tables
     create_country_table(cur, conn) 
     create_GDP_table(cur,conn)
     create_temperature_table(cur,conn)
-    print("grant is great")
+  
 
+
+   
+
+  
 
 
 
