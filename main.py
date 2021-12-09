@@ -56,9 +56,6 @@ def create_country_table(cur, conn):
     conn.commit()
 
 
-
-
-
 def create_GDP_table(cur, conn):
     # fetch all country code from the CountryCode table
     cur.execute("SELECT c_code FROM CountryCode")
@@ -109,7 +106,6 @@ def create_temperature_table(cur, conn):
         body = soup.find('tbody')
         all_rows = body.find_all('tr')
 
-        cur.execute("DROP TABLE IF EXISTS Temperature")
         cur.execute("CREATE TABLE IF NOT EXISTS Temperature (country_name TEXT PRIMARY KEY, temp FLOAT)")
         conn.commit()
 
@@ -118,6 +114,41 @@ def create_temperature_table(cur, conn):
             country_temp = row.find('td', {'class':'col-4 even'})
             cur.execute("INSERT INTO Temperature (country_name, temp) VALUES (?,?)", (country_name.getText(), country_temp.getText()))
         conn.commit()
+
+
+def graph_top10_gdp_temp(cur, conn):
+    cur.execute(
+        """
+        SELECT CountryName.c_name, Temperature.temp
+        FROM CountryCode  JOIN CountryName ON CountryCode.id = CountryName.id, Temperature, CountryGDP
+        WHERE Temperature.country_name LIKE  ('%'||CountryName.c_name||'%')
+        AND CountryGDP.c_code = CountryCode.c_code
+        ORDER BY CountryGDP.c_GDP DESC
+        LIMIT 10
+        """)
+    data = cur.fetchall()
+    country_names = []
+    temps = []
+    for i in data:
+        country_names.append(i[0])
+        temps.append(i[1])
+
+    
+    plt.figure(figsize=(10, 5))
+    plt.barh(country_names, temps, color ='royalblue', alpha=0.7)
+    plt.grid(color='#95a5a6', linestyle='--', linewidth=2, axis='y', alpha=0.7)
+    plt.xticks(
+        rotation=45, 
+        horizontalalignment='right',
+    )
+
+    plt.xlabel("Country Names(From greatest GDP to lowest)")
+    plt.ylabel("Average Tempreture", labelpad=-680)
+
+    plt.title("Average Tempreture for Countries with TOP10 GDP")
+    plt.show()
+
+
 
 
 ##############################################################################################
@@ -149,18 +180,14 @@ def main():
         drop_table(cur, conn, args.drop)
 
 
-
-      # initialize tables
+    """
+    # initialize tables
     create_country_table(cur, conn) 
     create_GDP_table(cur,conn)
     create_temperature_table(cur,conn)
-  
+    """
 
-
-   
-
-  
-
+    # graph_top10_gdp_temp(cur, conn)
 
 
 if __name__ == "__main__":
