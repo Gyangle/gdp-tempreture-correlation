@@ -148,7 +148,7 @@ def main():
     if  (args.drop):
         drop_table(cur, conn, args.drop)
 
-
+"""
 
       # initialize tables
     create_country_table(cur, conn) 
@@ -156,7 +156,7 @@ def main():
     create_temperature_table(cur,conn)
   
 
-
+"""
    
 
   
