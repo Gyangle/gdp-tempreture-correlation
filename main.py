@@ -75,8 +75,7 @@ def create_GDP_table(cur, conn):
     count_row = cur.fetchall()
     count_row = count_row[0][0]
     
-    
-  
+
     # fetch new added country codes' according GDP
     for i in range(count_row - 25, count_row):
 
@@ -91,8 +90,7 @@ def create_GDP_table(cur, conn):
 
                 #print(dict[1][0]["value"])
 
-    if (count_row == 250):
-        return
+    
 
 
 def create_temperature_table(cur, conn):
@@ -118,6 +116,85 @@ def create_temperature_table(cur, conn):
         conn.commit()
 
 
+##############################################################################################
+
+def graph_TempGap_GDP(cur, conn):
+    average_GDP = []
+    temps_range = []
+
+    temps_range.append("-20~0")
+    temps_range.append("0~10")
+    temps_range.append("10~20")
+    temps_range.append("20~30")
+
+    cur.execute(
+        """
+        SELECT AVG(CountryGDP.c_GDP)
+        FROM CountryCode JOIN CountryName ON CountryCode.id = CountryName.id, Temperature, CountryGDP
+        WHERE Temperature.country_name LIKE  ('%'||CountryName.c_name||'%')
+        AND CountryGDP.c_code = CountryCode.c_code 
+        AND Temperature.temp >= -20 AND Temperature.temp < 0
+        """)
+    
+
+    conn.commit()
+    data = cur.fetchall()
+    average_GDP.append(data[0][0])
+
+    cur.execute(
+            """
+            SELECT AVG(CountryGDP.c_GDP)
+            FROM CountryCode JOIN CountryName ON CountryCode.id = CountryName.id, Temperature, CountryGDP
+            WHERE Temperature.country_name LIKE  ('%'||CountryName.c_name||'%')
+            AND CountryGDP.c_code = CountryCode.c_code 
+            AND Temperature.temp >= 0 AND Temperature.temp < 10
+            """)
+
+    conn.commit()
+    data_2 = cur.fetchall()
+    average_GDP.append(data_2[0][0])
+
+    cur.execute(
+            """
+            SELECT AVG(CountryGDP.c_GDP)
+            FROM CountryCode JOIN CountryName ON CountryCode.id = CountryName.id, Temperature, CountryGDP
+            WHERE Temperature.country_name LIKE  ('%'||CountryName.c_name||'%')
+            AND CountryGDP.c_code = CountryCode.c_code 
+            AND Temperature.temp >= 10 AND Temperature.temp < 20
+            """)
+    conn.commit()
+    data_3 = cur.fetchall()
+    average_GDP.append(data_3[0][0])
+
+    cur.execute(
+            """
+            SELECT AVG(CountryGDP.c_GDP)
+            FROM CountryCode JOIN CountryName ON CountryCode.id = CountryName.id, Temperature, CountryGDP
+            WHERE Temperature.country_name LIKE  ('%'||CountryName.c_name||'%')
+            AND CountryGDP.c_code = CountryCode.c_code 
+            AND Temperature.temp >= 20 AND Temperature.temp < 30
+            """)
+
+    conn.commit()
+    data_4 = cur.fetchall()
+    average_GDP.append(data_4[0][0])
+    
+    #print(temps_range)
+    #print(average_GDP)
+
+
+
+    plt.bar(temps_range, average_GDP, align='center', alpha=0.5)
+    plt.xticks(temps_range, rotation = 90)
+    plt.ylabel('Countries Average GDP')
+    plt.xlabel('Temperature Ranges')
+    plt.title('Average Country GDP in Different Temperature Range')
+    plt.show()
+
+
+
+
+
 def graph_top10_gdp_temp(cur, conn):
     cur.execute(
         """
@@ -128,6 +205,7 @@ def graph_top10_gdp_temp(cur, conn):
         ORDER BY CountryGDP.c_GDP DESC
         LIMIT 10
         """)
+    conn.commit()
     data = cur.fetchall()
     country_names = []
     temps = []
@@ -177,20 +255,37 @@ def main():
      # process the drop command
     parser = argparse.ArgumentParser()
     parser.add_argument('--drop',  type=str)
+    parser.add_argument('--top10', action='store_true')
+    parser.add_argument('--tempRange',action='store_true')
     args = parser.parse_args()
     if  (args.drop):
         drop_table(cur, conn, args.drop)
+        return
+    # draw top10_gdp_temp
+    if  (args.top10):
+        graph_top10_gdp_temp(cur, conn)
+        return
+    # draw graph_TempGap_GDP
+    if  (args.tempRange):
+        graph_TempGap_GDP(cur, conn)
+        return
 
 
-    
+
     # initialize tables
     create_country_table(cur, conn) 
     create_GDP_table(cur,conn)
     create_temperature_table(cur,conn)
     
+ 
 
-
-    graph_top10_gdp_temp(cur, conn)
+   
+    
+    
+    
+    
+    #graph_top10_gdp_temp(cur, conn)
+    #graph_TempGap_GDP(cur, conn)
 
 
 if __name__ == "__main__":
