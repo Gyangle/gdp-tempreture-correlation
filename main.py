@@ -74,18 +74,9 @@ def create_GDP_table(cur, conn):
     cur.execute("SELECT COUNT (*) FROM CountryCode")
     count_row = cur.fetchall()
     count_row = count_row[0][0]
-    # if all rows stored
-    if (count_row > 250):
-        return
-
-    cur.execute("SELECT COUNT (*) FROM CountryGDP")
-    count_GDP = cur.fetchall()
-    count_GDP = count_row[0][0]
-    # if all rows stored
-    if (count_GDP > 176):
-        return
-
-
+    
+    
+  
     # fetch new added country codes' according GDP
     for i in range(count_row - 25, count_row):
 
@@ -99,6 +90,9 @@ def create_GDP_table(cur, conn):
     conn.commit()
 
                 #print(dict[1][0]["value"])
+
+    if (count_row == 250):
+        return
 
 
 def create_temperature_table(cur, conn):
@@ -188,14 +182,15 @@ def main():
         drop_table(cur, conn, args.drop)
 
 
-    """
+    
     # initialize tables
     create_country_table(cur, conn) 
     create_GDP_table(cur,conn)
     create_temperature_table(cur,conn)
-    """
+    
 
-    # graph_top10_gdp_temp(cur, conn)
+
+    graph_top10_gdp_temp(cur, conn)
 
 
 if __name__ == "__main__":
