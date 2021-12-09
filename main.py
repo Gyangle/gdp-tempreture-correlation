@@ -78,7 +78,7 @@ def create_GDP_table(cur, conn):
     count_row = cur.fetchall()
     count_row = count_row[0][0]
     # if all rows stored
-    if (count_row >= 250):
+    if (count_row > 250):
         return
 
     # fetch new added country codes' according GDP
@@ -150,14 +150,13 @@ def main():
 
 
 
-"""
       # initialize tables
     create_country_table(cur, conn) 
     create_GDP_table(cur,conn)
     create_temperature_table(cur,conn)
   
 
-"""
+
    
 
   
