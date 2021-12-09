@@ -96,24 +96,28 @@ def create_GDP_table(cur, conn):
                 #print(dict[1][0]["value"])
 
 
-
-
-
 def create_temperature_table(cur, conn):
-    soup = BeautifulSoup(re.get('https://listfist.com/list-of-countries-by-average-temperature').text, 'html.parser')
-    body = soup.find('tbody')
-    all_rows = body.find_all('tr')
+    res = conn.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    need_create = True
+    for name in res.fetchall():
+        if "Temperature" == name[0]:
+            need_create = False
+    
+    if need_create:
 
-    cur.execute("DROP TABLE IF EXISTS Temperature")
-    cur.execute("CREATE TABLE IF NOT EXISTS Temperature (country_name TEXT PRIMARY KEY, temp FLOAT)")
-    conn.commit()
+        soup = BeautifulSoup(re.get('https://listfist.com/list-of-countries-by-average-temperature').text, 'html.parser')
+        body = soup.find('tbody')
+        all_rows = body.find_all('tr')
 
-    for row in all_rows:
-        country_name = row.find('td', {'class':'col-3 odd'})
-        country_temp = row.find('td', {'class':'col-4 even'})
-        cur.execute("INSERT INTO Temperature (country_name, temp) VALUES (?,?)", (country_name.getText(), country_temp.getText()))
-    conn.commit()
+        cur.execute("DROP TABLE IF EXISTS Temperature")
+        cur.execute("CREATE TABLE IF NOT EXISTS Temperature (country_name TEXT PRIMARY KEY, temp FLOAT)")
+        conn.commit()
 
+        for row in all_rows:
+            country_name = row.find('td', {'class':'col-3 odd'})
+            country_temp = row.find('td', {'class':'col-4 even'})
+            cur.execute("INSERT INTO Temperature (country_name, temp) VALUES (?,?)", (country_name.getText(), country_temp.getText()))
+        conn.commit()
 
 
 ##############################################################################################
