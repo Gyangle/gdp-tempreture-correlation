@@ -78,6 +78,14 @@ def create_GDP_table(cur, conn):
     if (count_row > 250):
         return
 
+    cur.execute("SELECT COUNT (*) FROM CountryGDP")
+    count_GDP = cur.fetchall()
+    count_GDP = count_row[0][0]
+    # if all rows stored
+    if (count_GDP > 176):
+        return
+
+
     # fetch new added country codes' according GDP
     for i in range(count_row - 25, count_row):
 
