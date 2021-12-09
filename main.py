@@ -145,13 +145,15 @@ def main():
         drop_table(cur, conn, args.drop)
 
 
+
+"""
       # initialize tables
     create_country_table(cur, conn) 
     create_GDP_table(cur,conn)
     create_temperature_table(cur,conn)
   
 
-
+"""
    
 
   
