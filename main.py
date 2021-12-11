@@ -5,6 +5,7 @@ import numpy as np
 import requests as re
 import json
 import argparse
+import csv
 from bs4 import BeautifulSoup
 
 
@@ -49,6 +50,8 @@ def create_GDP_table(cur, conn):
     code_list = []
     for i in code:
         code_list.append(i[0])
+
+  
 
     # create CountryGDP table
     cur.execute("CREATE TABLE IF NOT EXISTS CountryGDP (c_code TEXT UNIQUE, c_GDP NUMERIC)")
@@ -100,7 +103,7 @@ def create_temperature_table(cur, conn):
 
 ##############################################################################################
 
-def graph_TempGap_GDP(cur, conn):
+def graph_TempGap_GDP(cur, conn,file_name):
     average_GDP = []
     temps_range = []
 
@@ -108,6 +111,9 @@ def graph_TempGap_GDP(cur, conn):
     temps_range.append("0~10")
     temps_range.append("10~20")
     temps_range.append("20~30")
+
+
+   
 
     cur.execute(
         """
@@ -122,6 +128,8 @@ def graph_TempGap_GDP(cur, conn):
     conn.commit()
     data = cur.fetchall()
     average_GDP.append(data[0][0])
+    
+
 
     cur.execute(
             """
@@ -160,6 +168,30 @@ def graph_TempGap_GDP(cur, conn):
     conn.commit()
     data_4 = cur.fetchall()
     average_GDP.append(data_4[0][0])
+
+
+
+
+    with open(file_name, "w", newline="") as fileout:
+        
+        header = ["Temperature Range", "Average GDP"]
+
+        csvwriter = csv.writer(fileout) 
+
+        csvwriter.writerow(header)
+
+
+        
+        for i in range(0,4):
+            row_value = []
+            row_value.append(temps_range[i])
+            row_value.append(average_GDP[i])
+            csvwriter.writerow(row_value)
+
+        #row_value.append(average_GDP)
+    
+    fileout.close()
+
 
     plt.bar(temps_range, average_GDP, align='center', alpha=0.5)
     plt.xticks(temps_range, rotation = 90)
@@ -275,7 +307,7 @@ def main():
         return
     # draw graph_TempGap_GDP
     if  (args.tempRange):
-        graph_TempGap_GDP(cur, conn)
+        graph_TempGap_GDP(cur, conn, "tempGapGDP.txt")
         return
     # draw grah_GDPvsTemp
     if  (args.gdpTemp):
