@@ -285,6 +285,7 @@ def main():
     parser.add_argument('--drop',  type=str)
     parser.add_argument('--top10', action='store_true')
     parser.add_argument('--tempRange',action='store_true')
+    parser.add_argument('--gdpTemp',action='store_true')
     args = parser.parse_args()
     if  (args.drop):
         drop_table(cur, conn, args.drop)
@@ -297,24 +298,21 @@ def main():
     if  (args.tempRange):
         graph_TempGap_GDP(cur, conn)
         return
+    # draw grah_GDPvsTemp
+    if  (args.gdpTemp):
+        grah_GDPvsTemp(cur, conn)
+        return
 
-    grah_GDPvsTemp(cur, conn)
 
     # initialize tables
     create_country_table(cur, conn) 
     create_GDP_table(cur,conn)
     create_temperature_table(cur,conn)
     
- 
-
-   
-    
-    
-    
     
     #graph_top10_gdp_temp(cur, conn)
     #graph_TempGap_GDP(cur, conn)
-
+    # grah_GDPvsTemp(cur, conn)
 
 if __name__ == "__main__":
     main()
