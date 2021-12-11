@@ -200,7 +200,7 @@ def graph_top10_gdp_temp(cur, conn):
     plt.show()
 
 
-def grah_GDPvsTemp(cur, conn):
+def grah_GDPvsTemp(cur, conn, scaled = False):
     cur.execute(
         """
         SELECT CountryGDP.c_GDP, Temperature.temp
@@ -218,11 +218,16 @@ def grah_GDPvsTemp(cur, conn):
         temperature.append(i[1])
     
     plt.scatter(GDP, temperature, color="orange", alpha=1)
-    plt.xlabel('Log of GDP($)')
     plt.ylabel('Temperature(°C)')
-    plt.title('World GDP vs Temperature')
     plt.yticks(rotation=20)
-    plt.xscale('log')
+    if scaled:
+        plt.xscale('log')
+        plt.xlabel('GDP($)')
+        plt.title('Log of Countries\' GDP vs Temperature')
+    else: 
+        plt.xlabel('Log of GDP($)')
+        plt.title('Countries\' GDP  vs Temperature')
+
     plt.grid(True)
     plt.show()
     
@@ -259,6 +264,7 @@ def main():
     parser.add_argument('--top10', action='store_true')
     parser.add_argument('--tempRange',action='store_true')
     parser.add_argument('--gdpTemp',action='store_true')
+    parser.add_argument('--gdpTempScaled',action='store_true')
     args = parser.parse_args()
     if  (args.drop):
         drop_table(cur, conn, args.drop)
@@ -274,6 +280,10 @@ def main():
     # draw grah_GDPvsTemp
     if  (args.gdpTemp):
         grah_GDPvsTemp(cur, conn)
+        return
+    # draw *scaled* grah_GDPvsTemp
+    if  (args.gdpTempScaled):
+        grah_GDPvsTemp(cur, conn, True)
         return
 
     # initialize tables/ add data

@@ -25,6 +25,8 @@ python3 main.py [table arguments, see below ]
 - Graph Average Country GDP in Different Temperature Range
 ### --gdpTemp
 - Graph GDP vs Temperature
+### -- gdpTempScaled
+- Graph logarithmic scaled Graph GDP vs Temperature
 ### --drop all
 - Drop all the tables except the meta data table
 ### --drop [table names]
