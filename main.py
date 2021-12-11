@@ -8,23 +8,6 @@ import argparse
 from bs4 import BeautifulSoup
 
 
-# command arg 1: 
-# python3 main.py --drop all
-# drop all the tables except the meta data table
-
-# command arg 2: 
-# python3 main.py --drop [table names]
-# drop a specific table
-
-
-# Create Database
-def setUpDatabase(db_name):
-    path = os.path.dirname(os.path.abspath(__file__))
-    conn = sqlite3.connect(path+'/'+db_name)
-    cur = conn.cursor()
-    return cur, conn
-    
-
 def create_country_table(cur, conn):
     # store all country names in data in an LIST**
     base_url = "https://restcountries.com/v3.1/all"
@@ -92,8 +75,6 @@ def create_GDP_table(cur, conn):
                 #print(dict[1][0]["value"])
 
     
-
-
 def create_temperature_table(cur, conn):
     res = conn.execute("SELECT name FROM sqlite_master WHERE type='table';")
     need_create = True
@@ -179,11 +160,6 @@ def graph_TempGap_GDP(cur, conn):
     conn.commit()
     data_4 = cur.fetchall()
     average_GDP.append(data_4[0][0])
-    
-    #print(temps_range)
-    #print(average_GDP)
-
-
 
     plt.bar(temps_range, average_GDP, align='center', alpha=0.5)
     plt.xticks(temps_range, rotation = 90)
@@ -191,9 +167,6 @@ def graph_TempGap_GDP(cur, conn):
     plt.xlabel('Temperature Ranges')
     plt.title('Average Country GDP in Different Temperature Range')
     plt.show()
-
-
-
 
 
 def graph_top10_gdp_temp(cur, conn):
@@ -214,7 +187,6 @@ def graph_top10_gdp_temp(cur, conn):
         country_names.append(i[0])
         temps.append(i[1])
 
-    
     plt.figure(figsize=(10, 5))
     plt.barh(country_names, temps, color ='royalblue', alpha=0.7)
     plt.grid(color='#95a5a6', linestyle='--', linewidth=2, axis='y', alpha=0.7)
@@ -222,14 +194,10 @@ def graph_top10_gdp_temp(cur, conn):
         rotation=45, 
         horizontalalignment='right',
     )
-
     plt.xlabel("Country Names(From greatest GDP to lowest)")
     plt.ylabel("Average Tempreture", labelpad=-680)
     plt.title("Average Tempreture for Countries with TOP10 GDP")
     plt.show()
-
-
-
 
 
 def grah_GDPvsTemp(cur, conn):
@@ -261,6 +229,13 @@ def grah_GDPvsTemp(cur, conn):
 
 ##############################################################################################
 
+# Create Database connection
+def setUpDatabase(db_name):
+    path = os.path.dirname(os.path.abspath(__file__))
+    conn = sqlite3.connect(path+'/'+db_name)
+    cur = conn.cursor()
+    return cur, conn
+    
 
 def drop_table(cur, conn, table_name):
     if table_name == "all":
@@ -272,8 +247,6 @@ def drop_table(cur, conn, table_name):
     else:
         cur.execute(f"DROP TABLE IF EXISTS {table_name}")
     conn.commit()
-
-
 
 ##############################################################################################
 
@@ -303,12 +276,10 @@ def main():
         grah_GDPvsTemp(cur, conn)
         return
 
-
-    # initialize tables
+    # initialize tables/ add data
     create_country_table(cur, conn) 
     create_GDP_table(cur,conn)
     create_temperature_table(cur,conn)
-    
     
     #graph_top10_gdp_temp(cur, conn)
     #graph_TempGap_GDP(cur, conn)
