@@ -7,6 +7,7 @@ import json
 import argparse
 from bs4 import BeautifulSoup
 
+
 # command arg 1: 
 # python3 main.py --drop all
 # drop all the tables except the meta data table
@@ -224,12 +225,39 @@ def graph_top10_gdp_temp(cur, conn):
 
     plt.xlabel("Country Names(From greatest GDP to lowest)")
     plt.ylabel("Average Tempreture", labelpad=-680)
-
     plt.title("Average Tempreture for Countries with TOP10 GDP")
     plt.show()
 
 
 
+
+
+def grah_GDPvsTemp(cur, conn):
+    cur.execute(
+        """
+        SELECT CountryGDP.c_GDP, Temperature.temp
+        FROM CountryCode  JOIN CountryName ON CountryCode.id = CountryName.id, Temperature, CountryGDP
+        WHERE Temperature.country_name LIKE  ('%'||CountryName.c_name||'%')
+        AND CountryGDP.c_code = CountryCode.c_code
+        """
+    )
+    conn.commit()
+    data = cur.fetchall()
+    GDP = []
+    temperature = []
+    for i in data:
+        GDP.append(round(i[0], 2))
+        temperature.append(i[1])
+    
+    plt.scatter(GDP, temperature, color="orange", alpha=1)
+    plt.xlabel('Log of GDP($)')
+    plt.ylabel('Temperature(°C)')
+    plt.title('World GDP vs Temperature')
+    plt.yticks(rotation=20)
+    plt.xscale('log')
+    plt.grid(True)
+    plt.show()
+    
 
 ##############################################################################################
 
@@ -270,7 +298,7 @@ def main():
         graph_TempGap_GDP(cur, conn)
         return
 
-
+    grah_GDPvsTemp(cur, conn)
 
     # initialize tables
     create_country_table(cur, conn) 
