@@ -1,7 +1,6 @@
 import sqlite3
 import os
 import matplotlib.pyplot as plt
-import numpy as np
 import requests as re
 import json
 import argparse
@@ -51,8 +50,6 @@ def create_GDP_table(cur, conn):
     for i in code:
         code_list.append(i[0])
 
-  
-
     # create CountryGDP table
     cur.execute("CREATE TABLE IF NOT EXISTS CountryGDP (c_code TEXT UNIQUE, c_GDP NUMERIC)")
     conn.commit()
@@ -74,8 +71,6 @@ def create_GDP_table(cur, conn):
         if len(dict) > 1 and dict[1] != None and dict[1][0]["value"] != None:
             cur.execute("INSERT INTO CountryGDP (c_code, c_GDP) VALUES (?,?)", (code_list[i], dict[1][0]["value"]))
     conn.commit()
-
-                #print(dict[1][0]["value"])
 
     
 def create_temperature_table(cur, conn):
@@ -101,6 +96,15 @@ def create_temperature_table(cur, conn):
         conn.commit()
 
 
+def writeData(file, head, content):
+    dir = os.path.dirname(file)
+    out_file = open(os.path.join(dir, file), "w")
+    csv_writer = csv.writer(out_file, delimiter=",", quotechar='"')
+    csv_writer.writerow(head)
+    for x in content:
+        csv_writer.writerow(x)
+
+
 ##############################################################################################
 
 def graph_TempGap_GDP(cur, conn,file_name):
@@ -112,9 +116,6 @@ def graph_TempGap_GDP(cur, conn,file_name):
     temps_range.append("10~20")
     temps_range.append("20~30")
 
-
-   
-
     cur.execute(
         """
         SELECT AVG(CountryGDP.c_GDP)
@@ -124,13 +125,10 @@ def graph_TempGap_GDP(cur, conn,file_name):
         AND Temperature.temp >= -20 AND Temperature.temp < 0
         """)
     
-
     conn.commit()
     data = cur.fetchall()
     average_GDP.append(data[0][0])
     
-
-
     cur.execute(
             """
             SELECT AVG(CountryGDP.c_GDP)
@@ -169,9 +167,6 @@ def graph_TempGap_GDP(cur, conn,file_name):
     data_4 = cur.fetchall()
     average_GDP.append(data_4[0][0])
 
-
-
-
     with open(file_name, "w", newline="") as fileout:
         
         header = ["Temperature Range", "Average GDP"]
@@ -180,8 +175,6 @@ def graph_TempGap_GDP(cur, conn,file_name):
 
         csvwriter.writerow(header)
 
-
-        
         for i in range(0,4):
             row_value = []
             row_value.append(temps_range[i])
@@ -191,7 +184,6 @@ def graph_TempGap_GDP(cur, conn,file_name):
         #row_value.append(average_GDP)
     
     fileout.close()
-
 
     plt.bar(temps_range, average_GDP, align='center', alpha=0.5)
     plt.xticks(temps_range, rotation = 90)
@@ -214,18 +206,20 @@ def graph_top10_gdp_temp(cur, conn):
     conn.commit()
     data = cur.fetchall()
     country_names = []
-    temps = []
+    country_gdp = []
+    writeContent = [] # content for csv file
     for i in data:
         country_names.append(i[0])
-        temps.append(i[1])
+        country_gdp.append(i[1])
+        writeContent.append((i[0], i[1]))
 
+    # write data to csv file
+    writeData("top10.csv", ("country_names", "country_gdp"), writeContent)
+    # graph
     plt.figure(figsize=(10, 5))
-    plt.barh(country_names, temps, color ='royalblue', alpha=0.7)
+    plt.barh(country_names, country_gdp, color ='royalblue', alpha=0.7)
     plt.grid(color='#95a5a6', linestyle='--', linewidth=2, axis='y', alpha=0.7)
-    plt.xticks(
-        rotation=45, 
-        horizontalalignment='right',
-    )
+    plt.xticks(rotation=45, horizontalalignment='right')
     plt.xlabel("Country Names(From greatest GDP to lowest)")
     plt.ylabel("Average Tempreture", labelpad=-680)
     plt.title("Average Tempreture for Countries with TOP10 GDP")
