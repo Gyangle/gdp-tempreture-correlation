@@ -237,12 +237,18 @@ def grah_GDPvsTemp(cur, conn, scaled = False):
     )
     conn.commit()
     data = cur.fetchall()
+
     GDP = []
     temperature = []
+    csvfile = []
     for i in data:
         GDP.append(round(i[0], 2))
         temperature.append(i[1])
-    
+        csvfile.append((i[0], i[1]))
+
+    writeData("GDPvsTemp.txt", ("GDP", "Temperature"), csvfile)
+
+    #graph
     plt.scatter(GDP, temperature, color="orange", alpha=1)
     plt.ylabel('Temperature(°C)')
     plt.yticks(rotation=20)
