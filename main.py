@@ -220,8 +220,8 @@ def graph_top10_gdp_temp(cur, conn):
     plt.barh(country_names, country_gdp, color ='royalblue', alpha=0.7)
     plt.grid(color='#95a5a6', linestyle='--', linewidth=2, axis='y', alpha=0.7)
     plt.xticks(rotation=45, horizontalalignment='right')
-    plt.xlabel("Country Names(From greatest GDP to lowest)")
-    plt.ylabel("Average Tempreture", labelpad=-680)
+    plt.ylabel("Country Names(From greatest GDP to lowest)", labelpad=-680)
+    plt.xlabel("Average Tempreture")
     plt.title("Average Tempreture for Countries with TOP10 GDP")
     plt.show()
 
