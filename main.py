@@ -214,7 +214,7 @@ def graph_top10_gdp_temp(cur, conn):
         writeContent.append((i[0], i[1]))
 
     # write data to csv file
-    writeData("top10.txt", ("country_names", "country_gdp"), writeContent)
+    writeData("top10.txt", ("country_names", "country_Average_Temp"), writeContent)
     # graph
     plt.figure(figsize=(10, 5))
     plt.barh(country_names, country_gdp, color ='royalblue', alpha=0.7)
