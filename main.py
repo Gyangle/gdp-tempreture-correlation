@@ -254,10 +254,10 @@ def grah_GDPvsTemp(cur, conn, scaled = False):
     plt.yticks(rotation=20)
     if scaled:
         plt.xscale('log')
-        plt.xlabel('GDP($)')
+        plt.xlabel('Log of GDP($)')
         plt.title('Log of Countries\' GDP vs Temperature')
     else: 
-        plt.xlabel('Log of GDP($)')
+        plt.xlabel('GDP($)')
         plt.title('Countries\' GDP  vs Temperature')
 
     plt.grid(True)
