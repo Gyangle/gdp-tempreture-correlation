@@ -59,6 +59,13 @@
 ### graph_top10_gdp_temp(cur, conn)
 - Takes in cur and conn to graph the Tempretue is celcius for the top 10 countries with the greatest amount of GDP(decending order). Also, write the calculated data used for graphing into the text file. 
 
+### create_temperature_table(cur, conn)
+- Takes in cur and conn to create a table with two columns: country name and temperature. Since this function stores all the items at once once the table has been created, we used if statement to only create and store the items once. It creates a get request to the website https://listfist.com/list-of-countries-by-average-temperature using BeautifulSoup, then finds the corresponding columns with the data we want, and stores them in the database.
+
+### grah_GDPvsTemp(curr, conn, scaled = False)
+- Takes in curr, conn, and scaled = False. Could return two graphs depending on whether to see scaled(with log) or not scaled graphs(with different commands). The x axis is GDP data of all the countries, y axis is the temperature data. It also writes the temperature and GDP data into a text file.
+
+
 ### writeData(file, head, content)
 - Takes in a file name, the header for csv content, the csv content itself. It writes the content and header 
   into the file. 
